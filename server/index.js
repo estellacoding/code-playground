@@ -2,6 +2,8 @@ const express = require('express');
 const cors = require('cors');
 const session = require('express-session');
 const passport = require('passport');
+const pgSession = require('connect-pg-simple')(session);
+const { Pool } = require('pg');
 require('dotenv').config();
 
 const authRoutes = require('./routes/auth');
@@ -19,7 +21,17 @@ app.use(cors({
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
 
+// Create PostgreSQL session store
+const sessionPool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+  ssl: false
+});
+
 app.use(session({
+  store: new pgSession({
+    pool: sessionPool,
+    tableName: 'session'
+  }),
   secret: process.env.SESSION_SECRET || 'your-secret-key',
   resave: false,
   saveUninitialized: false,
