@@ -1,0 +1,19 @@
+{
+  "name": "code-playground",
+  "services": [
+    {
+      "name": "app",
+      "type": "docker",
+      "dockerfile": "./Dockerfile",
+      "ports": [
+        {
+          "port": 5000,
+          "type": "http"
+        }
+      ],
+      "env": {
+        "NODE_ENV": "production"
+      }
+    }
+  ]
+}
