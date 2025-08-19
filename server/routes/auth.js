@@ -2,16 +2,29 @@ const express = require('express');
 const passport = require('passport');
 const router = express.Router();
 
-router.get('/google', passport.authenticate('google', {
-  scope: ['profile', 'email']
-}));
+// Check if Google OAuth is configured
+const isGoogleOAuthEnabled = process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET;
 
-router.get('/google/callback', 
-  passport.authenticate('google', { failureRedirect: '/login' }),
-  (req, res) => {
-    res.redirect(process.env.CLIENT_URL || 'http://localhost:5173');
-  }
-);
+if (isGoogleOAuthEnabled) {
+  router.get('/google', passport.authenticate('google', {
+    scope: ['profile', 'email']
+  }));
+
+  router.get('/google/callback', 
+    passport.authenticate('google', { failureRedirect: '/login' }),
+    (req, res) => {
+      res.redirect(process.env.CLIENT_URL || 'http://localhost:5173');
+    }
+  );
+} else {
+  router.get('/google', (req, res) => {
+    res.status(503).json({ error: 'Google OAuth is not configured' });
+  });
+
+  router.get('/google/callback', (req, res) => {
+    res.status(503).json({ error: 'Google OAuth is not configured' });
+  });
+}
 
 router.get('/user', (req, res) => {
   if (req.user) {
