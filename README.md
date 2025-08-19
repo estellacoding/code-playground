@@ -18,7 +18,7 @@ A LeetCode-style online code playground that supports Java and Python execution 
 - Node.js & Express
 - PostgreSQL database
 - Passport.js for OAuth
-- Docker for code execution isolation
+- Secure code execution
 
 ### Frontend
 - React 18
@@ -123,11 +123,10 @@ See `database-schema.sql` for complete schema.
 
 1. Push your code to GitHub
 2. Connect your GitHub repository to Zeabur
-3. Zeabur will automatically detect the `zeabur.json` configuration
-4. Set up environment variables in Zeabur dashboard
-5. Deploy!
-
-The `Dockerfile` includes multi-stage build for optimized production deployment.
+3. Zeabur will automatically detect Node.js project
+4. Add PostgreSQL service in Zeabur
+5. Set up environment variables in Zeabur dashboard
+6. Deploy!
 
 ### Environment Variables for Production
 
