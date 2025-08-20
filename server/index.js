@@ -13,10 +13,36 @@ const executeRoutes = require('./routes/execute');
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-app.use(cors({
-  origin: process.env.CLIENT_URL || 'http://localhost:5173',
-  credentials: true
-}));
+// Configure CORS - allow same origin and development origins
+const corsOptions = {
+  credentials: true,
+  origin: function (origin, callback) {
+    // Allow same origin requests (no origin header when same domain)
+    if (!origin) {
+      console.log('CORS: Same origin request allowed');
+      return callback(null, true);
+    }
+    
+    const allowedOrigins = [
+      'https://codeplayground.zeabur.app',
+      'http://localhost:5173',
+      'http://localhost:3000',
+      process.env.CLIENT_URL
+    ].filter(Boolean);
+    
+    console.log('CORS check - Origin:', origin, 'Allowed origins:', allowedOrigins);
+    
+    if (allowedOrigins.includes(origin)) {
+      console.log('CORS: Origin allowed');
+      return callback(null, true);
+    }
+    
+    console.log('CORS: Origin not allowed');
+    callback(null, false);
+  }
+};
+
+app.use(cors(corsOptions));
 
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
@@ -27,7 +53,8 @@ const sessionPool = new Pool({
   ssl: false
 });
 
-app.use(session({
+// Session configuration
+const sessionConfig = {
   store: new pgSession({
     pool: sessionPool,
     tableName: 'session'
@@ -35,13 +62,23 @@ app.use(session({
   secret: process.env.SESSION_SECRET || 'your-secret-key',
   resave: false,
   saveUninitialized: false,
+  name: 'sessionId',
   cookie: {
-    secure: process.env.NODE_ENV === 'production',
+    secure: process.env.NODE_ENV === 'production', // HTTPS only in production
     httpOnly: true,
-    sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+    sameSite: 'lax', // Changed from 'none' to 'lax' for same-origin
     maxAge: 24 * 60 * 60 * 1000 // 24 hours
+    // Removed domain setting to let it default to current domain
   }
-}));
+};
+
+console.log('Session config:', {
+  secure: sessionConfig.cookie.secure,
+  sameSite: sessionConfig.cookie.sameSite,
+  nodeEnv: process.env.NODE_ENV
+});
+
+app.use(session(sessionConfig));
 
 app.use(passport.initialize());
 app.use(passport.session());
