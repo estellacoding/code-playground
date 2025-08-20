@@ -1,6 +1,6 @@
 # Code Playground
 
-A LeetCode-style online code playground that supports Java and Python execution with Google OAuth authentication, code sharing, and persistent storage.
+A modern, mobile-first online code playground that supports Java and Python execution with Google OAuth authentication, code sharing, persistent storage, and one-click code formatting. Designed for seamless coding experience across all devices.
 
 ## Features
 
@@ -9,8 +9,11 @@ A LeetCode-style online code playground that supports Java and Python execution 
 - 💾 **Persistent Storage** - Save and manage your code snippets
 - 🔗 **Code Sharing** - Share playgrounds with unique URLs
 - 🎨 **Monaco Editor** - Professional code editor with syntax highlighting
-- 📱 **Responsive Design** - Works on desktop, tablet, and mobile
+- ✨ **Code Formatting** - One-click code beautification for Java and Python
+- 📱 **Mobile-First Design** - Fully responsive with mobile-optimized interface
+- 🔄 **Mobile View Toggle** - Switch between code editor and output on mobile
 - 🚀 **One-Click Deploy** - Deploy to Zeabur with a single click
+- 🛠️ **Touch-Friendly UI** - Optimized buttons and interactions for mobile devices
 
 ## Tech Stack
 
@@ -22,10 +25,11 @@ A LeetCode-style online code playground that supports Java and Python execution 
 
 ### Frontend
 - React 18
-- Monaco Editor (VS Code editor)
-- Tailwind CSS
+- Monaco Editor (VS Code editor) with mobile optimization
+- Tailwind CSS with responsive design
 - React Router
 - Axios for API calls
+- Lucide React icons
 
 ## Quick Start
 
@@ -84,8 +88,12 @@ The application will be available at `http://localhost:5173`
 3. Enable the Google+ API
 4. Create OAuth 2.0 credentials:
    - Application type: Web application
-   - Authorized redirect URIs: `http://localhost:5000/api/auth/google/callback` (dev) and your production callback URL
+   - Authorized redirect URIs: 
+     - Development: `http://localhost:5001/api/auth/google/callback`
+     - Production: `https://your-domain.com/api/auth/google/callback`
 5. Copy the Client ID and Client Secret to your `.env` file
+
+**Important**: Make sure to use HTTPS URLs for production environments to avoid redirect URI mismatch errors.
 
 ## Database Schema
 
@@ -134,9 +142,21 @@ Set these in your Zeabur dashboard:
 - `DATABASE_URL` - PostgreSQL connection string
 - `GOOGLE_CLIENT_ID` - Google OAuth client ID
 - `GOOGLE_CLIENT_SECRET` - Google OAuth client secret
-- `SESSION_SECRET` - Random secret for sessions
-- `CLIENT_URL` - Your frontend URL
-- `NODE_ENV=production`
+- `SESSION_SECRET` - Random secret for sessions (use a long random string)
+- `CLIENT_URL` - Your frontend URL (e.g., `https://your-domain.com`)
+- `NODE_ENV=production` - **Important**: Must be set to "production" for HTTPS OAuth callbacks
+
+## Mobile Features
+
+- 📱 **Responsive Layout** - Automatically adapts to different screen sizes
+- 🔄 **View Toggle** - Switch between code editor and output views on mobile
+- ✨ **Code Formatting** - One-click code beautification with fallback formatting
+- 👆 **Touch Optimization** - Larger touch targets and gesture-friendly interface
+- 🎨 **Mobile Editor** - Monaco Editor optimized for mobile with:
+  - Smaller font size for better readability
+  - Word wrap enabled
+  - Simplified suggestions and autocomplete
+  - Touch-friendly scrolling
 
 ## Security Features
 
@@ -146,6 +166,34 @@ Set these in your Zeabur dashboard:
 - Input validation and sanitization
 - Execution timeout limits
 - File system isolation for code execution
+- HTTPS enforcement for production OAuth flows
+
+## Troubleshooting
+
+### Google OAuth Issues
+
+**Error: "redirect_uri_mismatch"**
+- Ensure you've added the correct callback URL in Google Cloud Console
+- For production: `https://your-domain.com/api/auth/google/callback`
+- For development: `http://localhost:5001/api/auth/google/callback`
+- Verify `NODE_ENV=production` is set in production environment
+- Check that your domain uses HTTPS in production
+
+**OAuth not working after deployment**
+- Wait 5-10 minutes for Google's configuration to propagate
+- Check environment variables are correctly set in your hosting platform
+- Verify the callback URL uses HTTPS for production deployments
+
+### Build Issues
+
+**Prettier/formatting errors during build**
+- The app includes fallback formatting that doesn't require external dependencies
+- Build-time formatting issues are resolved with simplified JavaScript-based formatting
+
+### Database Connection Issues
+- Verify DATABASE_URL is correctly formatted
+- Ensure PostgreSQL service is running
+- Check that the database schema has been applied
 
 ## Contributing
 
