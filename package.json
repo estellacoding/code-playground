@@ -11,10 +11,19 @@
     "start": "cd server && npm start",
     "install:all": "cd server && npm install && cd ../client && npm install"
   },
-  "keywords": ["code", "playground", "java", "python", "execution"],
+  "keywords": [
+    "code",
+    "playground",
+    "java",
+    "python",
+    "execution"
+  ],
   "author": "",
   "license": "MIT",
   "devDependencies": {
     "concurrently": "^8.2.2"
+  },
+  "dependencies": {
+    "prettier": "^3.6.2"
   }
 }

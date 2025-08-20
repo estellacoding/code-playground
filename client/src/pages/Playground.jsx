@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import CodeEditor from '../components/CodeEditor';
-import { Play, Save, Share, Settings, Loader } from 'lucide-react';
+import { Play, Save, Share, Settings, Loader, Code, Smartphone, Monitor } from 'lucide-react';
 import axios from 'axios';
 
 const Playground = () => {
@@ -24,6 +24,8 @@ const Playground = () => {
   const [isSaving, setIsSaving] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [shareUrl, setShareUrl] = useState('');
+  const [isMobile, setIsMobile] = useState(false);
+  const [showOutput, setShowOutput] = useState(false);
 
   useEffect(() => {
     if (!user) {
@@ -34,6 +36,15 @@ const Playground = () => {
     if (id) {
       fetchPlayground();
     }
+
+    // Check if mobile
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
   }, [id, user, navigate]);
 
   const fetchPlayground = async () => {
@@ -119,6 +130,66 @@ const Playground = () => {
     }
   };
 
+  const formatCode = async () => {
+    if (!playground.code) return;
+    
+    try {
+      const prettier = (await import('prettier/standalone')).default;
+      const parserBabel = (await import('prettier/parser-babel')).default;
+      const parserJava = (await import('prettier/parser-java')).default;
+      
+      let formatted;
+      if (playground.language === 'python') {
+        // Simple Python formatting
+        formatted = playground.code
+          .split('\n')
+          .map(line => line.trim())
+          .filter(line => line.length > 0)
+          .join('\n');
+      } else if (playground.language === 'java') {
+        formatted = prettier.format(playground.code, {
+          parser: 'java',
+          plugins: [parserJava],
+          tabWidth: 4,
+          useTabs: false,
+        });
+      } else {
+        formatted = prettier.format(playground.code, {
+          parser: 'babel',
+          plugins: [parserBabel],
+          semi: true,
+          singleQuote: true,
+          tabWidth: 2,
+        });
+      }
+      
+      setPlayground({ ...playground, code: formatted });
+    } catch (error) {
+      console.warn('Code formatting failed:', error);
+      // Fallback: simple indentation fix
+      const lines = playground.code.split('\n');
+      let indentLevel = 0;
+      const formatted = lines.map(line => {
+        const trimmed = line.trim();
+        if (!trimmed) return '';
+        
+        if (trimmed.includes('}') && !trimmed.includes('{')) {
+          indentLevel = Math.max(0, indentLevel - 1);
+        }
+        
+        const formatted = '    '.repeat(indentLevel) + trimmed;
+        
+        if (trimmed.includes('{') && !trimmed.includes('}')) {
+          indentLevel++;
+        }
+        
+        return formatted;
+      }).join('\n');
+      
+      setPlayground({ ...playground, code: formatted });
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -150,38 +221,60 @@ const Playground = () => {
             </select>
           </div>
           
-          <div className="flex items-center space-x-3">
+          <div className="flex items-center space-x-2 md:space-x-3">
             <button
               onClick={executeCode}
               disabled={isExecuting}
-              className="inline-flex items-center space-x-2 px-4 py-2 bg-green-600 hover:bg-green-700 disabled:bg-green-800 text-white font-medium rounded transition-colors"
+              className="inline-flex items-center space-x-1 md:space-x-2 px-2 md:px-4 py-2 bg-green-600 hover:bg-green-700 disabled:bg-green-800 text-white font-medium rounded transition-colors text-sm"
             >
               {isExecuting ? <Loader className="animate-spin" size={16} /> : <Play size={16} />}
-              <span>{isExecuting ? 'Running...' : 'Run Code'}</span>
+              <span className="hidden sm:inline">{isExecuting ? 'Running...' : 'Run'}</span>
+            </button>
+            
+            <button
+              onClick={formatCode}
+              className="inline-flex items-center space-x-1 md:space-x-2 px-2 md:px-4 py-2 bg-yellow-600 hover:bg-yellow-700 text-white font-medium rounded transition-colors text-sm"
+              title="Format Code"
+            >
+              <Code size={16} />
+              <span className="hidden sm:inline">Format</span>
             </button>
             
             <button
               onClick={savePlayground}
               disabled={isSaving}
-              className="inline-flex items-center space-x-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-800 text-white font-medium rounded transition-colors"
+              className="inline-flex items-center space-x-1 md:space-x-2 px-2 md:px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-800 text-white font-medium rounded transition-colors text-sm"
             >
               {isSaving ? <Loader className="animate-spin" size={16} /> : <Save size={16} />}
-              <span>{isSaving ? 'Saving...' : 'Save'}</span>
+              <span className="hidden sm:inline">{isSaving ? 'Saving...' : 'Save'}</span>
             </button>
             
-            <button
-              onClick={generateShareLink}
-              className="inline-flex items-center space-x-2 px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white font-medium rounded transition-colors"
-            >
-              <Share size={16} />
-              <span>Share</span>
-            </button>
+            {!isMobile && (
+              <button
+                onClick={generateShareLink}
+                className="inline-flex items-center space-x-2 px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white font-medium rounded transition-colors text-sm"
+              >
+                <Share size={16} />
+                <span>Share</span>
+              </button>
+            )}
+            
+            {isMobile && (
+              <button
+                onClick={() => setShowOutput(!showOutput)}
+                className="inline-flex items-center space-x-1 px-2 py-2 bg-gray-600 hover:bg-gray-700 text-white font-medium rounded transition-colors text-sm"
+                title={showOutput ? 'Show Code' : 'Show Output'}
+              >
+                {showOutput ? <Monitor size={16} /> : <Smartphone size={16} />}
+                <span className="hidden sm:inline">{showOutput ? 'Code' : 'Output'}</span>
+              </button>
+            )}
             
             <button
               onClick={() => setShowSettings(!showSettings)}
               className="p-2 text-gray-400 hover:text-white transition-colors"
             >
-              <Settings size={20} />
+              <Settings size={isMobile ? 16 : 20} />
             </button>
           </div>
         </div>
@@ -220,34 +313,78 @@ const Playground = () => {
       )}
 
       {/* Main Content */}
-      <div className="flex flex-1 overflow-hidden">
-        {/* Code Editor */}
-        <div className="flex-1 flex flex-col">
-          <div className="p-4 bg-gray-900 text-sm text-gray-400 border-b border-gray-700">
-            Code Editor
-          </div>
-          <div className="flex-1 p-4">
-            <CodeEditor
-              value={playground.code}
-              onChange={(value) => setPlayground({ ...playground, code: value })}
-              language={playground.language}
-              height="100%"
-            />
-          </div>
+      {isMobile ? (
+        /* Mobile Layout - Stacked */
+        <div className="flex flex-col flex-1 overflow-hidden">
+          {!showOutput ? (
+            /* Code Editor */
+            <div className="flex flex-col flex-1">
+              <div className="p-3 bg-gray-900 text-sm text-gray-400 border-b border-gray-700">
+                Code Editor
+              </div>
+              <div className="flex-1 p-2">
+                <CodeEditor
+                  value={playground.code}
+                  onChange={(value) => setPlayground({ ...playground, code: value })}
+                  language={playground.language}
+                  height="100%"
+                />
+              </div>
+            </div>
+          ) : (
+            /* Output Panel */
+            <div className="flex flex-col flex-1">
+              <div className="p-3 bg-gray-900 text-sm text-gray-400 border-b border-gray-700 flex items-center justify-between">
+                <span>Output</span>
+                <div className="flex space-x-2">
+                  <button
+                    onClick={generateShareLink}
+                    className="inline-flex items-center space-x-1 px-2 py-1 bg-purple-600 hover:bg-purple-700 text-white text-xs font-medium rounded transition-colors"
+                  >
+                    <Share size={14} />
+                    <span>Share</span>
+                  </button>
+                </div>
+              </div>
+              <div className="flex-1 p-3 bg-gray-800">
+                <pre className="text-sm text-gray-300 whitespace-pre-wrap font-mono h-full overflow-auto">
+                  {output || 'Click "Run" to see output here...'}
+                </pre>
+              </div>
+            </div>
+          )}
         </div>
+      ) : (
+        /* Desktop Layout - Side by side */
+        <div className="flex flex-1 overflow-hidden">
+          {/* Code Editor */}
+          <div className="flex-1 flex flex-col">
+            <div className="p-4 bg-gray-900 text-sm text-gray-400 border-b border-gray-700">
+              Code Editor
+            </div>
+            <div className="flex-1 p-4">
+              <CodeEditor
+                value={playground.code}
+                onChange={(value) => setPlayground({ ...playground, code: value })}
+                language={playground.language}
+                height="100%"
+              />
+            </div>
+          </div>
 
-        {/* Output Panel */}
-        <div className="w-1/3 border-l border-gray-700 flex flex-col">
-          <div className="p-4 bg-gray-900 text-sm text-gray-400 border-b border-gray-700">
-            Output
-          </div>
-          <div className="flex-1 p-4 bg-gray-800">
-            <pre className="text-sm text-gray-300 whitespace-pre-wrap font-mono h-full overflow-auto">
-              {output || 'Click "Run Code" to see output here...'}
-            </pre>
+          {/* Output Panel */}
+          <div className="w-1/3 border-l border-gray-700 flex flex-col">
+            <div className="p-4 bg-gray-900 text-sm text-gray-400 border-b border-gray-700">
+              Output
+            </div>
+            <div className="flex-1 p-4 bg-gray-800">
+              <pre className="text-sm text-gray-300 whitespace-pre-wrap font-mono h-full overflow-auto">
+                {output || 'Click "Run Code" to see output here...'}
+              </pre>
+            </div>
           </div>
         </div>
-      </div>
+      )}
     </div>
   );
 };

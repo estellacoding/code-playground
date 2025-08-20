@@ -6,11 +6,11 @@ const Login = () => {
   const { login } = useAuth();
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-900 to-gray-800">
-      <div className="max-w-md w-full space-y-8 p-8">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-900 to-gray-800 px-4">
+      <div className="max-w-md w-full space-y-8 p-6 md:p-8">
         <div className="text-center">
-          <Code size={64} className="mx-auto mb-8 text-orange-400" />
-          <h2 className="text-3xl font-bold text-white mb-2">
+          <Code size={48} className="mx-auto mb-6 md:mb-8 text-orange-400 md:w-16 md:h-16" />
+          <h2 className="text-2xl md:text-3xl font-bold text-white mb-2">
             Welcome to Code Playground
           </h2>
           <p className="text-gray-400">
@@ -21,7 +21,7 @@ const Login = () => {
         <div className="mt-8">
           <button
             onClick={login}
-            className="w-full flex justify-center items-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
+            className="w-full flex justify-center items-center px-6 py-4 border border-transparent text-base font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors touch-manipulation"
           >
             <svg className="w-5 h-5 mr-3" viewBox="0 0 24 24">
               <path

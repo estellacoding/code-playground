@@ -32,12 +32,23 @@ const CodeEditor = ({
         options={{
           readOnly,
           minimap: { enabled: false },
-          fontSize: 14,
+          fontSize: window.innerWidth < 768 ? 12 : 14,
           lineNumbers: 'on',
           scrollBeyondLastLine: false,
           automaticLayout: true,
           tabSize: language === 'java' ? 4 : 4,
           insertSpaces: true,
+          wordWrap: window.innerWidth < 768 ? 'on' : 'off',
+          scrollbar: {
+            horizontal: window.innerWidth < 768 ? 'auto' : 'visible',
+            vertical: 'auto',
+            handleMouseWheel: true,
+          },
+          // Mobile-friendly settings
+          quickSuggestions: window.innerWidth >= 768,
+          suggestOnTriggerCharacters: window.innerWidth >= 768,
+          acceptSuggestionOnEnter: window.innerWidth >= 768 ? 'on' : 'off',
+          tabCompletion: window.innerWidth >= 768 ? 'on' : 'off',
         }}
       />
     </div>
