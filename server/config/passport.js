@@ -4,10 +4,20 @@ const pool = require('./database');
 
 // Only configure Google OAuth if credentials are provided
 if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
+  // Construct full callback URL based on environment
+  const baseUrl = process.env.NODE_ENV === 'production' 
+    ? (process.env.CLIENT_URL || 'https://codeplayground.zeabur.app')
+    : 'http://localhost:5001';
+  const callbackURL = `${baseUrl}/api/auth/google/callback`;
+  
+  console.log(`OAuth Callback URL configured: ${callbackURL}`);
+  console.log(`NODE_ENV: ${process.env.NODE_ENV}`);
+  console.log(`CLIENT_URL: ${process.env.CLIENT_URL}`);
+  
   passport.use(new GoogleStrategy({
     clientID: process.env.GOOGLE_CLIENT_ID,
     clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-    callbackURL: `/api/auth/google/callback`
+    callbackURL: callbackURL
   }, async (accessToken, refreshToken, profile, done) => {
     try {
       const { rows } = await pool.query(
