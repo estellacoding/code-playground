@@ -59,14 +59,23 @@ if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
 }
 
 passport.serializeUser((user, done) => {
+  console.log('=== SERIALIZE USER ===');
+  console.log('Serializing user ID:', user.id);
+  console.log('=== END SERIALIZE ===');
   done(null, user.id);
 });
 
 passport.deserializeUser(async (id, done) => {
+  console.log('=== DESERIALIZE USER ===');
+  console.log('Deserializing user ID:', id);
   try {
     const { rows } = await pool.query('SELECT * FROM users WHERE id = $1', [id]);
+    console.log('Found user:', rows[0] ? rows[0].id : 'not found');
+    console.log('=== END DESERIALIZE ===');
     done(null, rows[0]);
   } catch (error) {
+    console.log('Deserialize error:', error);
+    console.log('=== END DESERIALIZE ===');
     done(error, null);
   }
 });
