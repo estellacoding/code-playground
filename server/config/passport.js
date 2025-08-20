@@ -20,15 +20,23 @@ if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
     callbackURL: callbackURL
   }, async (accessToken, refreshToken, profile, done) => {
     try {
+      console.log('OAuth profile received:', {
+        id: profile.id,
+        email: profile.emails?.[0]?.value,
+        name: profile.displayName
+      });
+
       const { rows } = await pool.query(
         'SELECT * FROM users WHERE google_id = $1',
         [profile.id]
       );
 
       if (rows.length > 0) {
+        console.log('Existing user found:', rows[0].id);
         return done(null, rows[0]);
       }
 
+      console.log('Creating new user...');
       const newUser = await pool.query(
         'INSERT INTO users (google_id, email, name, avatar_url) VALUES ($1, $2, $3, $4) RETURNING *',
         [
@@ -39,6 +47,7 @@ if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
         ]
       );
 
+      console.log('New user created:', newUser.rows[0].id);
       return done(null, newUser.rows[0]);
     } catch (error) {
       console.error('OAuth Error:', error);

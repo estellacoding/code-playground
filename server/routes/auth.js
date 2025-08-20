@@ -13,7 +13,10 @@ if (isGoogleOAuthEnabled) {
   router.get('/google/callback', 
     passport.authenticate('google', { failureRedirect: '/login' }),
     (req, res) => {
-      res.redirect(process.env.CLIENT_URL || 'http://localhost:5173');
+      console.log('OAuth callback successful, user:', req.user);
+      const redirectUrl = process.env.CLIENT_URL || 'http://localhost:5173';
+      console.log('Redirecting to:', redirectUrl);
+      res.redirect(redirectUrl);
     }
   );
 } else {
