@@ -53,7 +53,7 @@ const sessionPool = new Pool({
   ssl: false
 });
 
-// Session configuration
+// Session configuration - simplified for debugging
 const sessionConfig = {
   store: new pgSession({
     pool: sessionPool,
@@ -62,21 +62,20 @@ const sessionConfig = {
   secret: process.env.SESSION_SECRET || 'your-secret-key',
   resave: false,
   saveUninitialized: false,
-  name: 'sessionId',
+  name: 'connect.sid',
   cookie: {
-    secure: process.env.NODE_ENV === 'production', // HTTPS only in production
-    httpOnly: true,
-    sameSite: 'lax', // Changed from 'none' to 'lax' for same-origin
-    maxAge: 24 * 60 * 60 * 1000 // 24 hours
-    // Removed domain setting to let it default to current domain
+    secure: false, // Temporarily disable secure for testing
+    httpOnly: false, // Temporarily disable httpOnly for testing  
+    sameSite: 'lax',
+    maxAge: 24 * 60 * 60 * 1000
   }
 };
 
-console.log('Session config:', {
-  secure: sessionConfig.cookie.secure,
-  sameSite: sessionConfig.cookie.sameSite,
-  nodeEnv: process.env.NODE_ENV
-});
+console.log('=== SESSION CONFIG ===');
+console.log('NODE_ENV:', process.env.NODE_ENV);
+console.log('SESSION_SECRET exists:', !!process.env.SESSION_SECRET);
+console.log('Cookie config:', sessionConfig.cookie);
+console.log('=== END SESSION CONFIG ===');
 
 app.use(session(sessionConfig));
 

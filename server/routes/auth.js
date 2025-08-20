@@ -29,10 +29,25 @@ if (isGoogleOAuthEnabled) {
   });
 }
 
+// Test endpoint for debugging
+router.get('/debug', (req, res) => {
+  res.json({
+    sessionID: req.sessionID,
+    user: req.user,
+    session: req.session,
+    headers: req.headers,
+    isAuthenticated: req.isAuthenticated ? req.isAuthenticated() : false
+  });
+});
+
 router.get('/user', (req, res) => {
-  console.log('Auth check request - Session ID:', req.sessionID);
-  console.log('Auth check request - User:', req.user);
-  console.log('Auth check request - Session:', req.session);
+  console.log('=== AUTH CHECK ===');
+  console.log('Session ID:', req.sessionID);
+  console.log('User:', req.user);
+  console.log('Session data:', req.session);
+  console.log('Is authenticated:', req.isAuthenticated ? req.isAuthenticated() : false);
+  console.log('Headers:', req.headers);
+  console.log('=== END AUTH CHECK ===');
   
   if (req.user) {
     res.json(req.user);
