@@ -30,6 +30,10 @@ if (isGoogleOAuthEnabled) {
 }
 
 router.get('/user', (req, res) => {
+  console.log('Auth check request - Session ID:', req.sessionID);
+  console.log('Auth check request - User:', req.user);
+  console.log('Auth check request - Session:', req.session);
+  
   if (req.user) {
     res.json(req.user);
   } else {
