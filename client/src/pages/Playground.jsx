@@ -130,64 +130,57 @@ const Playground = () => {
     }
   };
 
-  const formatCode = async () => {
+  const formatCode = () => {
     if (!playground.code) return;
     
-    try {
-      const prettier = (await import('prettier/standalone')).default;
-      const parserBabel = (await import('prettier/parser-babel')).default;
-      const parserJava = (await import('prettier/parser-java')).default;
+    // Simple but effective code formatting
+    const lines = playground.code.split('\n');
+    let indentLevel = 0;
+    const formatted = lines.map(line => {
+      const trimmed = line.trim();
+      if (!trimmed) return '';
       
-      let formatted;
-      if (playground.language === 'python') {
-        // Simple Python formatting
-        formatted = playground.code
-          .split('\n')
-          .map(line => line.trim())
-          .filter(line => line.length > 0)
-          .join('\n');
-      } else if (playground.language === 'java') {
-        formatted = prettier.format(playground.code, {
-          parser: 'java',
-          plugins: [parserJava],
-          tabWidth: 4,
-          useTabs: false,
-        });
-      } else {
-        formatted = prettier.format(playground.code, {
-          parser: 'babel',
-          plugins: [parserBabel],
-          semi: true,
-          singleQuote: true,
-          tabWidth: 2,
-        });
-      }
-      
-      setPlayground({ ...playground, code: formatted });
-    } catch (error) {
-      console.warn('Code formatting failed:', error);
-      // Fallback: simple indentation fix
-      const lines = playground.code.split('\n');
-      let indentLevel = 0;
-      const formatted = lines.map(line => {
-        const trimmed = line.trim();
-        if (!trimmed) return '';
-        
+      // Handle Java formatting
+      if (playground.language === 'java') {
+        // Decrease indent for closing braces
         if (trimmed.includes('}') && !trimmed.includes('{')) {
           indentLevel = Math.max(0, indentLevel - 1);
         }
         
-        const formatted = '    '.repeat(indentLevel) + trimmed;
+        const formattedLine = '    '.repeat(indentLevel) + trimmed;
         
+        // Increase indent for opening braces
         if (trimmed.includes('{') && !trimmed.includes('}')) {
           indentLevel++;
         }
         
-        return formatted;
-      }).join('\n');
+        return formattedLine;
+      } 
       
-      setPlayground({ ...playground, code: formatted });
-    }
+      // Handle Python formatting
+      else if (playground.language === 'python') {
+        // Handle dedent for certain keywords
+        if (trimmed.match(/^(except|elif|else|finally):/)) {
+          indentLevel = Math.max(0, indentLevel - 1);
+        }
+        
+        const formattedLine = '    '.repeat(indentLevel) + trimmed;
+        
+        // Increase indent for lines ending with ':'
+        if (trimmed.endsWith(':') && !trimmed.startsWith('#')) {
+          indentLevel++;
+        }
+        
+        return formattedLine;
+      }
+      
+      return trimmed;
+    }).filter(line => line.trim() !== ''); // Remove empty lines
+    
+    // Add proper spacing between blocks
+    const finalFormatted = formatted.join('\n').replace(/\n{3,}/g, '\n\n');
+    
+    setPlayground({ ...playground, code: finalFormatted });
   };
 
   if (isLoading) {
