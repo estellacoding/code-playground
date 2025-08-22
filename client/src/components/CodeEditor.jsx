@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Editor, { loader } from '@monaco-editor/react';
 
-// Configure monaco loader
+// Configure monaco loader with fallback
 loader.config({
   paths: {
     vs: 'https://cdn.jsdelivr.net/npm/monaco-editor@0.48.0/min/vs'
@@ -17,6 +17,7 @@ const CodeEditor = ({
 }) => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [editorValue, setEditorValue] = useState('');
   
   const defaultJavaCode = `public class Main {
     public static void main(String[] args) {
@@ -31,10 +32,35 @@ const CodeEditor = ({
     return language === 'java' ? defaultJavaCode : defaultPythonCode;
   };
 
-  const handleEditorDidMount = () => {
+  const handleEditorDidMount = (editor, monaco) => {
+    console.log('Monaco Editor mounted successfully');
     setIsLoading(false);
     setError(null);
+    
+    // Set initial value
+    const initialValue = getDefaultCode();
+    setEditorValue(initialValue);
+    editor.setValue(initialValue);
+    
+    // Focus the editor
+    editor.focus();
   };
+
+  const handleEditorChange = (value) => {
+    console.log('Editor value changed:', value?.substring(0, 50) + '...');
+    setEditorValue(value || '');
+    if (onChange) {
+      onChange(value);
+    }
+  };
+
+  useEffect(() => {
+    // Update editor value when value prop changes
+    const newValue = getDefaultCode();
+    if (newValue !== editorValue) {
+      setEditorValue(newValue);
+    }
+  }, [value, language]);
 
   if (error) {
     return (
@@ -44,8 +70,8 @@ const CodeEditor = ({
           <p>Error: {error}</p>
         </div>
         <textarea
-          value={getDefaultCode()}
-          onChange={(e) => onChange && onChange(e.target.value)}
+          value={editorValue || getDefaultCode()}
+          onChange={(e) => handleEditorChange(e.target.value)}
           readOnly={readOnly}
           className="w-full h-80 mt-4 bg-gray-900 text-white p-3 border border-gray-600 rounded font-mono text-sm resize-none"
           placeholder="Code editor fallback..."
@@ -64,8 +90,8 @@ const CodeEditor = ({
       <Editor
         height={height}
         language={language}
-        value={getDefaultCode()}
-        onChange={onChange}
+        value={editorValue || getDefaultCode()}
+        onChange={handleEditorChange}
         theme="vs-dark"
         loading={<div className="bg-gray-800 p-4 text-center text-gray-400">Loading...</div>}
         onMount={handleEditorDidMount}
