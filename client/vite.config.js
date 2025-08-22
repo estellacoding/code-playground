@@ -15,4 +15,10 @@ export default defineConfig({
       },
     },
   },
+  worker: {
+    format: 'es'
+  },
+  optimizeDeps: {
+    exclude: ['@monaco-editor/react']
+  },
 })
