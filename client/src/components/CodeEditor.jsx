@@ -8,6 +8,13 @@ loader.config({
   }
 });
 
+// Set up loader initialization
+loader.init().then(() => {
+  console.log('Monaco Editor loaded successfully');
+}).catch(error => {
+  console.error('Failed to initialize Monaco Editor:', error);
+});
+
 const CodeEditor = ({ 
   value, 
   onChange, 
@@ -33,17 +40,35 @@ const CodeEditor = ({
   };
 
   const handleEditorDidMount = (editor, monaco) => {
-    console.log('Monaco Editor mounted successfully');
-    setIsLoading(false);
-    setError(null);
-    
-    // Set initial value
-    const initialValue = getDefaultCode();
-    setEditorValue(initialValue);
-    editor.setValue(initialValue);
-    
-    // Focus the editor
-    editor.focus();
+    try {
+      console.log('Monaco Editor mounted successfully');
+      setIsLoading(false);
+      setError(null);
+      
+      // Set initial value
+      const initialValue = getDefaultCode();
+      setEditorValue(initialValue);
+      
+      // Set value with proper error handling
+      try {
+        editor.setValue(initialValue);
+      } catch (err) {
+        console.warn('Failed to set initial value, using fallback:', err);
+      }
+      
+      // Focus the editor with delay to ensure proper mounting
+      setTimeout(() => {
+        try {
+          editor.focus();
+        } catch (err) {
+          console.warn('Failed to focus editor:', err);
+        }
+      }, 100);
+      
+    } catch (error) {
+      console.error('Error in handleEditorDidMount:', error);
+      setError(error.message);
+    }
   };
 
   const handleEditorChange = (value) => {
@@ -95,8 +120,15 @@ const CodeEditor = ({
         theme="vs-dark"
         loading={<div className="bg-gray-800 p-4 text-center text-gray-400">Loading...</div>}
         onMount={handleEditorDidMount}
+        onValidate={(markers) => {
+          // Handle validation errors if needed
+          if (markers && markers.length > 0) {
+            console.log('Editor validation markers:', markers);
+          }
+        }}
         beforeMount={(monaco) => {
           try {
+            console.log('Setting up Monaco Editor...');
             monaco.editor.defineTheme('custom-dark', {
               base: 'vs-dark',
               inherit: true,
